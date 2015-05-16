@@ -20,6 +20,14 @@ def v_func(f, x, v):
 def v_abs(v):
 	return tuple((abs(v[i]) for i in xrange(len(v))))	
 
+def v_diff(v1, v2):
+	return v_abs(v_summ(v1, v_mult(-1.0, v2)))
+
+def rk2(func, xn, vn, hn): 
+	return v_summ(vn, v_mult(hn/2.0, v_summ(v_func(func, xn, vn), v_func(func, xn + hn, v_summ(vn, v_mult(hn, v_func(func, xn, vn)))))))
+
+
+
 x0 = 0.0
 w0 = 0.0
 phi0 = 1.0
@@ -65,20 +73,42 @@ xn = 0
 
 history = []
 
+
+method = rk2
+
 for i in xrange(100):
-	vn_1 = v_summ(vn, v_mult(hn/2.0, v_summ(v_func(func, xn, vn), v_func(func, xn + hn, v_summ(vn, v_mult(hn, v_func(func, xn, vn)))))))
+	vn_1 = method(func, xn, vn, hn)
+
+	vn_half = method(func, xn, vn, hn/2.0)
+	vn_wave = method(func, xn + hn/2.0, vn_half, hn/2.0)
+	vn_1_vn_wave = v_summ(vn_wave, v_mult(-1.0, vn_1))
+
+	p = 2
+	S = v_mult(1.0 / (2.0**p - 1), vn_1_vn_wave)
+
 	vn = vn_1
 	xn += hn
 	un = v_func(sol, xn, 0)
-	un_vn = v_abs(v_summ(vn, v_mult(-1.0, un)))
+	un_vn = v_diff(vn, un)
 
-	history.append({"n": i, "x": xn, "v": vn, "h": hn, "u": un, "uv": un_vn})
+	history.append({"n": i, 
+					"x": xn, 
+					"v": vn, 
+					"h": hn, 
+					"u": un, 
+					"uv": un_vn, 
+					"v2": vn_1_vn_wave,
+					"S": S})
 
-	print xn, "\t", vn, 
+	# print xn, "\t", vn, 
 
 for h in history:
 	print h['n'], "\t", h['x'], '\t'
 	print "      v:", h['v']
 	print "      u:", h['u']
+	print "      S:", h['S']
+	print "     v2:", h['v2']
 	print "|u - v|:", h['uv']
 	
+maxUv = tuple( max((h['uv'][i] for h in history)) for i in xrange(len(vn)) )
+print 'max |u - v|:', maxUv

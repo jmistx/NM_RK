@@ -36,6 +36,16 @@ def v_diff(v1, v2):
 def rk2(func, xn, vn, hn): 
 	return v_summ(vn, v_mult(hn/2.0, v_summ(v_func(func, xn, vn), v_func(func, xn + hn, v_summ(vn, v_mult(hn, v_func(func, xn, vn)))))))
 
+def rkMenson(func, xn, vn, hn):
+	k1 = v_func(func, xn, vn)
+	k2 = v_func(func, xn + hn/3.0, v_summ(vn, v_mult(hn/3.0, k1)))
+	k3 = v_func(func, xn + hn/3.0, v_summ(vn, v_summ(v_mult(hn/6.0, k1), v_mult(hn/6.0, k2))))
+	k4 = v_func(func, xn + hn/2.0, v_summ(vn, v_summ(v_mult(hn/8.0, k1), v_mult(3.0*hn/8.0, k3))))
+	k5 = v_func(func, xn + hn, v_summ(vn, v_summ(v_mult(hn/2.0, k1), v_summ(v_mult(-3.0*hn/2.0, k3), v_mult(2.0*hn, k4)))))
+	vn1 = v_summ(vn, v_mult(hn/10.0, v_summ(k1, v_summ(v_mult(3.0, k3), v_summ(v_mult(4.0, k4), v_mult(2.0, k5))))))
+	S = v_mult(hn / 30.0, v_summ(v_mult(2.0, k1), v_summ(v_mult(-9.0, k3), v_summ( v_mult(8.0, k4), v_mult(-1.0, k5) ))))
+	return vn1, S
+
 def show_S_plot(history):
 	f = plt.figure(1)
 	iters = [h['n'] for h in history]
@@ -127,11 +137,11 @@ def show_exact_and_test_solution(result, captions, solution):
 #params
 right_edge_stop_enabled = True
 table_output_enabled = False
-test_task = False
-method = rk2
-p = 2
+test_task = True
+method, p = rkMenson, 4
+#method = rk2, 2
 
-Xend = 1.5
+Xend = 20
 XendEps = 0.001
 
 Nmax = 10000
@@ -207,61 +217,113 @@ history.append({"n": 0,
 				"C2": C2})
 
 step = 0
-while(step < Nmax):
-	step += 1
-	vn_1 = method(func, xn, vn, hn)
 
-	vn_half = method(func, xn, vn, hn/2.0)
-	vn_wave = method(func, xn + hn/2.0, vn_half, hn/2.0)
+if method == rk2:
+	while(step < Nmax):
+		step += 1
+		vn_1 = method(func, xn, vn, hn)
 
-	vn_1_vn_wave = v_summ(vn_wave, v_mult(-1.0, vn_1))
+		vn_half = method(func, xn, vn, hn/2.0)
+		vn_wave = method(func, xn + hn/2.0, vn_half, hn/2.0)
 
-	S = v_mult(1.0 / (2.0**p - 1), vn_1_vn_wave)
-	S_max = max(v_abs(S))
+		vn_1_vn_wave = v_summ(vn_wave, v_mult(-1.0, vn_1))
 
-	h_prev = hn
-	xn_current = xn + hn
-	#local error control
-	if eps / (2.0**(p+1)) <= S_max <= eps:
-		xn += hn
-		vn = vn_1
-		result.append((xn, vn))
+		S = v_mult(1.0 / (2.0**p - 1), vn_1_vn_wave)
+		S_max = max(v_abs(S))
 
-	elif eps < S_max:
-		hn = hn / 2.0
-		C1 += 1
+		h_prev = hn
+		xn_current = xn + hn
+		#local error control
+		if eps / (2.0**(p+1)) <= S_max <= eps:
+			xn += hn
+			vn = vn_1
+			result.append((xn, vn))
 
-	else:
-		xn += hn
-		vn = vn_1
-		hn = hn * 2.0
-		C2 += 1
-		result.append((xn, vn))
+		elif eps < S_max:
+			hn = hn / 2.0
+			C1 += 1
 
-	#compare exact solution
-	if test_task:
-		un = v_func(sol, xn, 0)
-		un_vn = v_diff(vn, un)
-	else:
-		un = 0
-		un_vn = 0
+		else:
+			xn += hn
+			vn = vn_1
+			hn = hn * 2.0
+			C2 += 1
+			result.append((xn, vn))
 
-	history.append({"n": step, 
-					"x": xn_current, 
-					"v": vn_1, 
-					"v2": vn_wave,
-					"h": h_prev, 
-					"u": un, 
-					"uv": un_vn, 
-					"v1v2": vn_1_vn_wave,
-					"S": S,
-					"Smax": S_max,
-					"C1": C1,
-					"C2": C2})
+		#compare exact solution
+		if test_task:
+			un = v_func(sol, xn, 0)
+			un_vn = v_diff(vn, un)
+		else:
+			un = 0
+			un_vn = 0
 
-	if right_edge_stop_enabled:
-		if Xend - xn < XendEps:
-			break
+		history.append({"n": step, 
+						"x": xn_current, 
+						"v": vn_1, 
+						"v2": vn_wave,
+						"h": h_prev, 
+						"u": un, 
+						"uv": un_vn, 
+						"v1v2": vn_1_vn_wave,
+						"S": S,
+						"Smax": S_max,
+						"C1": C1,
+						"C2": C2})
+
+		if right_edge_stop_enabled:
+			if Xend - xn < XendEps:
+				break
+if method == rkMenson:
+	while(step < Nmax):
+		step += 1
+		vn_1, S = method(func, xn, vn, hn)
+
+		S_max = max(v_abs(S))
+
+		h_prev = hn
+		xn_current = xn + hn
+		#local error control
+		if eps / (2.0**(p+1)) <= S_max <= eps:
+			xn += hn
+			vn = vn_1
+			result.append((xn, vn))
+
+		elif eps < S_max:
+			hn = hn / 2.0
+			C1 += 1
+
+		else:
+			xn += hn
+			vn = vn_1
+			hn = hn * 2.0
+			C2 += 1
+			result.append((xn, vn))
+
+		#compare exact solution
+		if test_task:
+			un = v_func(sol, xn, 0)
+			un_vn = v_diff(vn, un)
+		else:
+			un = 0
+			un_vn = 0
+
+		history.append({"n": step, 
+						"x": xn_current, 
+						"v": vn_1, 
+						"v2": 0,
+						"h": h_prev, 
+						"u": un, 
+						"uv": un_vn, 
+						"v1v2": 0,
+						"S": S,
+						"Smax": S_max,
+						"C1": C1,
+						"C2": C2})
+
+		if right_edge_stop_enabled:
+			if Xend - xn < XendEps:
+				break
 
 if table_output_enabled:
 	for h in history:
@@ -276,10 +338,24 @@ if table_output_enabled:
 	
 
 if test_task:
-	maxUv = tuple( max((h['uv'][i] for h in history)) for i in xrange(len(vn)) )
-	print 'max |u - v|:', maxUv
+	maxDiff = [0, 0, 0]
+	for i in xrange(len(maxDiff)):
+		x_result = [x for x, v in result]
+		exact_solution = [sol[i](x, 0) for x in x_result]
+		numeric_solution = [v[i] for x, v in result]
+		maxDiff[i] = max((abs(u - v) for u, v in itertools.izip(exact_solution, numeric_solution)))
+	print 'max |u - v|:', maxDiff
+
+hmin = min((h['h'] for h in history))
+hmax = min((h['h'] for h in history))
+
 print 'C1:', C1
 print 'C2:', C2
+print 'Steps', step
+print 'h min', hmin
+print 'h max', hmax
+print 'xn', xn
+
 
 
 show_S_plot(history)

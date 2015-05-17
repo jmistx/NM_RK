@@ -126,8 +126,12 @@ def show_exact_and_test_solution(result, captions, solution):
 
 #params
 right_edge_stop_enabled = True
-table_output_enabled = True
-Xend = 5.0
+table_output_enabled = False
+test_task = False
+method = rk2
+p = 2
+
+Xend = 1.5
 XendEps = 0.001
 
 Nmax = 10000
@@ -147,8 +151,6 @@ J = 3.0
 g = 1.0
 b = 1.0
 
-
-
 def _phi(v):
 	return v[0]
 
@@ -158,23 +160,30 @@ def _phi1(v):
 def _w(v):
 	return v[2]
 
+if test_task:
+	captions = ['phi', 'phi\'', 'w']
 
-#f0 = lambda x, v: _phi1(v)
-#f1 = lambda x, v: n*n*_w(v)*math.sin(_phi(v))*math.cos(_phi(v)) - g*math.sin(_phi(v)) - (b/m)*+_phi1(v)
-#f2 = lambda x, v: (k*math.cos(_phi(v)) - F) / J
+	f0 = lambda x, v: _phi(v)
+	f1 = lambda x, v: -2.0*_phi1(v)
+	f2 = lambda x, v: 3.0*_w(v)
 
-f0 = lambda x, v: _phi(v)
-f1 = lambda x, v: -2.0*_phi1(v)
-f2 = lambda x, v: 3.0*_w(v)
+	s0 = lambda x, v: math.exp(x)
+	s1 = lambda x, v: math.exp(-2*x) * 2.0
+	s2 = lambda x, v: math.exp(3.0*x) * 0.7
 
-s0 = lambda x, v: math.exp(x)
-s1 = lambda x, v: math.exp(-2*x) * 2.0
-s2 = lambda x, v: math.exp(3.0*x) * 0.7
+	vn = (1.0, 2.0, 0.7)
+
+	sol = (s0, s1, s2)
+
+else:
+	captions = ['phi', 'phi\'', 'w']
+
+	f0 = lambda x, v: _phi1(v)
+	f1 = lambda x, v: n*n*_w(v)*math.sin(_phi(v))*math.cos(_phi(v)) - g*math.sin(_phi(v)) - (b/m)*+_phi1(v)
+	f2 = lambda x, v: (k*math.cos(_phi(v)) - F) / J
+	vn = (phi0, phi_0, w0)
 
 func = (f0, f1, f2) 
-sol = (s0, s1, s2)
-#vn = (phi0, phi_0, w0)
-vn = (1.0, 2.0, 0.7)
 
 hn = 0.1
 xn = 0
@@ -183,9 +192,6 @@ C2 = 0
 
 history = []
 result = [(xn, vn)]
-
-method = rk2
-p = 2
 
 history.append({"n": 0, 
 				"x": xn, 
@@ -233,8 +239,12 @@ while(step < Nmax):
 		result.append((xn, vn))
 
 	#compare exact solution
-	un = v_func(sol, xn, 0)
-	un_vn = v_diff(vn, un)
+	if test_task:
+		un = v_func(sol, xn, 0)
+		un_vn = v_diff(vn, un)
+	else:
+		un = 0
+		un_vn = 0
 
 	history.append({"n": step, 
 					"x": xn_current, 
@@ -264,12 +274,19 @@ if table_output_enabled:
 		print "    Smax:", h['Smax']
 		print " |u - v|:", h['uv']
 	
-maxUv = tuple( max((h['uv'][i] for h in history)) for i in xrange(len(vn)) )
-print 'max |u - v|:', maxUv
 
-captions = ['phi', 'phi\'', 'w']
+if test_task:
+	maxUv = tuple( max((h['uv'][i] for h in history)) for i in xrange(len(vn)) )
+	print 'max |u - v|:', maxUv
+print 'C1:', C1
+print 'C2:', C2
+
+
 show_S_plot(history)
 show_Func_plot(result, captions)
 show_Fase_portrait(result, captions, (1, 0))
-show_exact_and_test_solution(result, captions, sol)
+
+if test_task:
+	show_exact_and_test_solution(result, captions, sol)
+
 raw_input()

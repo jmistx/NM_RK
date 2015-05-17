@@ -46,21 +46,21 @@ def rkMenson(func, xn, vn, hn):
 	S = v_mult(hn / 30.0, v_summ(v_mult(2.0, k1), v_summ(v_mult(-9.0, k3), v_summ( v_mult(8.0, k4), v_mult(-1.0, k5) ))))
 	return vn1, S
 
-def show_S_plot(history):
+def show_S_plot(result_s_max, result_h):
 	f = plt.figure(1)
-	iters = [h['n'] for h in history]
+	iters = range(len(result_s_max))
 
 	plt.subplot(2, 1, 1)
 	plt.title(u'Оценка локальной погрешности')
 	plt.xlabel('i')
 	plt.ylabel('Smax')
-	plt.plot(iters, [h['Smax'] for h in history])
+	plt.plot(iters, result_s_max)
 
 	plt.subplot(2, 1, 2)
 	plt.title(u'Размер шага')
-	plt.xlabel('n')
+	plt.xlabel('i')
 	plt.ylabel('h')
-	plt.plot(iters, [h['h'] for h in history])
+	plt.plot(iters, result_h)
 	f.show()
 
 def show_Func_plot(result, captions):
@@ -137,9 +137,9 @@ def show_exact_and_test_solution(result, captions, solution):
 #params
 right_edge_stop_enabled = True
 table_output_enabled = False
-test_task = True
-method, p = rkMenson, 4
-#method = rk2, 2
+test_task = False
+#method, p = rkMenson, 4
+method, p = rk2, 2
 
 Xend = 20
 XendEps = 0.001
@@ -155,8 +155,8 @@ phi_0 = 5.0
 h = 0.01
 k = 1.0
 m = 1.0
-n = 1.0
-F = 100.0
+n = 1
+F = 10
 J = 3.0
 g = 1.0
 b = 1.0
@@ -189,7 +189,7 @@ else:
 	captions = ['phi', 'phi\'', 'w']
 
 	f0 = lambda x, v: _phi1(v)
-	f1 = lambda x, v: n*n*_w(v)*math.sin(_phi(v))*math.cos(_phi(v)) - g*math.sin(_phi(v)) - (b/m)*+_phi1(v)
+	f1 = lambda x, v: n*n*_w(v)*_w(v)*math.sin(_phi(v))*math.cos(_phi(v)) - g*math.sin(_phi(v)) - (b/m)*+_phi1(v)
 	f2 = lambda x, v: (k*math.cos(_phi(v)) - F) / J
 	vn = (phi0, phi_0, w0)
 
@@ -201,6 +201,9 @@ C1 = 0
 C2 = 0
 
 history = []
+result_s_max = [0]
+result_h = [hn]
+
 result = [(xn, vn)]
 
 history.append({"n": 0, 
@@ -238,6 +241,8 @@ if method == rk2:
 			xn += hn
 			vn = vn_1
 			result.append((xn, vn))
+			result_s_max.append(S_max)
+			result_h.append(h_prev)
 
 		elif eps < S_max:
 			hn = hn / 2.0
@@ -249,6 +254,8 @@ if method == rk2:
 			hn = hn * 2.0
 			C2 += 1
 			result.append((xn, vn))
+			result_s_max.append(S_max)
+			result_h.append(h_prev)
 
 		#compare exact solution
 		if test_task:
@@ -288,6 +295,8 @@ if method == rkMenson:
 			xn += hn
 			vn = vn_1
 			result.append((xn, vn))
+			result_s_max.append(S_max)
+			result_h.append(h_prev)
 
 		elif eps < S_max:
 			hn = hn / 2.0
@@ -299,6 +308,8 @@ if method == rkMenson:
 			hn = hn * 2.0
 			C2 += 1
 			result.append((xn, vn))
+			result_s_max.append(S_max)
+			result_h.append(h_prev)
 
 		#compare exact solution
 		if test_task:
@@ -358,7 +369,7 @@ print 'xn', xn
 
 
 
-show_S_plot(history)
+show_S_plot(result_s_max, result_h)
 show_Func_plot(result, captions)
 show_Fase_portrait(result, captions, (1, 0))
 

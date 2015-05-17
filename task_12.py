@@ -8,6 +8,12 @@ import array
 
 import math
 
+import yaml
+
+import sys
+
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
@@ -134,32 +140,39 @@ def show_exact_and_test_solution(result, captions, solution):
 
 	g.show()
 
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(os.path.realpath(sys.executable))
+elif __file__:
+    application_path = os.path.dirname(os.path.realpath(__file__))
+
+cfg = yaml.load(open(os.path.join(application_path, 'params.yaml')))
+
 #params
-right_edge_stop_enabled = True
-table_output_enabled = False
-test_task = False
-method, p = rkMenson, 4
-#method, p = rk2, 2
+right_edge_stop_enabled = cfg['right_edge_stop_enabled']
+table_output_enabled = cfg['table_output_enabled']
+test_task = cfg['test_task']
+method = rk2 if cfg['method'] == 'rk2' else rkMenson
+p = cfg['p']
 
-Xend = 100
-XendEps = 0.001
+Xend = cfg['Xend']
+XendEps = cfg['XendEps']
 
-Nmax = 10000
-eps = 10.0**-5
+Nmax = cfg['Nmax']
+eps = cfg['eps']
 
 #task params
-x0 = 0.0
-w0 = 1.0
-phi0 = 1.0
-phi_0 = 1.2
-h = 0.01
-k = 1.0
-m = 1.0
-n = 0.01
-F = 1
-J = 3.0
-g = 1.0
-b = 1
+x0 = cfg['x0']
+w0 = cfg['w0']
+phi0 = cfg['phi0']
+phi_0 = cfg['phi_0']
+h = cfg['h']
+k = cfg['k']
+m = cfg['m']
+n = cfg['n']
+F = cfg['F']
+J = cfg['J']
+g = cfg['g']
+b = cfg['b']
 
 def _phi(v):
 	return v[0]

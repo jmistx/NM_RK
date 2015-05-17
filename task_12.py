@@ -165,7 +165,6 @@ x0 = cfg['x0']
 w0 = cfg['w0']
 phi0 = cfg['phi0']
 phi_0 = cfg['phi_0']
-h = cfg['h']
 k = cfg['k']
 m = cfg['m']
 n = cfg['n']
@@ -173,6 +172,9 @@ F = cfg['F']
 J = cfg['J']
 g = cfg['g']
 b = cfg['b']
+
+hn = cfg['hn']
+xn = x0
 
 def _phi(v):
 	return v[0]
@@ -208,8 +210,6 @@ else:
 
 func = (f0, f1, f2) 
 
-hn = 0.1
-xn = 0
 C1 = 0
 C2 = 0
 

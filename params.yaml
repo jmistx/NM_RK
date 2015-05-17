@@ -1,8 +1,8 @@
 right_edge_stop_enabled: true
 table_output_enabled: false
 test_task: false
-method: 'rkMerson' #rkMerson
-p: 4 #p : 4
+method: 'rkMerson' #rk2, rkMerson
+p: 4 #p : 2, 4
 
 #calc params
 Xend: 100 #правая граница
@@ -10,6 +10,7 @@ XendEps: 0.001 #Epsilon граничный
 
 Nmax: 10000 #максимальное число шагов
 eps: 0.00001 #параметр контроля ЛП
+hn: 0.01 #начальный шаг
 
 #начальные условия
 x0: 0.0
@@ -18,7 +19,6 @@ phi0: 1.0
 phi_0: 1.2 #производная phi
 
 #параметры задачи
-h: 0.01
 k: 1.0
 m: 1.0
 n: 0.01

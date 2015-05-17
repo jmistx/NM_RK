@@ -138,10 +138,10 @@ def show_exact_and_test_solution(result, captions, solution):
 right_edge_stop_enabled = True
 table_output_enabled = False
 test_task = False
-#method, p = rkMenson, 4
-method, p = rk2, 2
+method, p = rkMenson, 4
+#method, p = rk2, 2
 
-Xend = 20
+Xend = 100
 XendEps = 0.001
 
 Nmax = 10000
@@ -149,17 +149,17 @@ eps = 10.0**-5
 
 #task params
 x0 = 0.0
-w0 = 0.0
+w0 = 1.0
 phi0 = 1.0
-phi_0 = 5.0
+phi_0 = 1.2
 h = 0.01
 k = 1.0
 m = 1.0
-n = 1
-F = 10
+n = 0.01
+F = 1
 J = 3.0
 g = 1.0
-b = 1.0
+b = 1
 
 def _phi(v):
 	return v[0]

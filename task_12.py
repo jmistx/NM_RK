@@ -124,6 +124,16 @@ def show_exact_and_test_solution(result, captions, solution):
 
 	g.show()
 
+#params
+right_edge_stop_enabled = True
+table_output_enabled = True
+Xend = 5.0
+XendEps = 0.001
+
+Nmax = 10000
+eps = 10.0**-5
+
+#task params
 x0 = 0.0
 w0 = 0.0
 phi0 = 1.0
@@ -136,8 +146,8 @@ F = 100.0
 J = 3.0
 g = 1.0
 b = 1.0
-Nmax = 100
-eps = 10.0**-5
+
+
 
 def _phi(v):
 	return v[0]
@@ -190,7 +200,9 @@ history.append({"n": 0,
 				"C1": C1,
 				"C2": C2})
 
-for i in xrange(1, Nmax + 1):
+step = 0
+while(step < Nmax):
+	step += 1
 	vn_1 = method(func, xn, vn, hn)
 
 	vn_half = method(func, xn, vn, hn/2.0)
@@ -224,7 +236,7 @@ for i in xrange(1, Nmax + 1):
 	un = v_func(sol, xn, 0)
 	un_vn = v_diff(vn, un)
 
-	history.append({"n": i, 
+	history.append({"n": step, 
 					"x": xn_current, 
 					"v": vn_1, 
 					"v2": vn_wave,
@@ -237,18 +249,20 @@ for i in xrange(1, Nmax + 1):
 					"C1": C1,
 					"C2": C2})
 
-	# print xn, "\t", vn, 
+	if right_edge_stop_enabled:
+		if Xend - xn < XendEps:
+			break
 
-
-# for h in history:
-# 	print 'i:', h['n'], "\t", 'x:', h['x'], '\t','h:',h['h'], '\t','C1:',h['C1'], '\t','C2:', h['C2']
-# 	print "       v:", h['v']
-# 	print "      v2:", h['v2']
-# 	print "       u:", h['u']
-# 	print "|v - v2|:", h['v1v2']
-# 	print "       S:", h['S']
-# 	print "    Smax:", h['Smax']
-# 	print " |u - v|:", h['uv']
+if table_output_enabled:
+	for h in history:
+		print 'i:', h['n'], "\t", 'x:', h['x'], '\t','h:',h['h'], '\t','C1:',h['C1'], '\t','C2:', h['C2']
+		print "       v:", h['v']
+		print "      v2:", h['v2']
+		print "       u:", h['u']
+		print "|v - v2|:", h['v1v2']
+		print "       S:", h['S']
+		print "    Smax:", h['Smax']
+		print " |u - v|:", h['uv']
 	
 maxUv = tuple( max((h['uv'][i] for h in history)) for i in xrange(len(vn)) )
 print 'max |u - v|:', maxUv
